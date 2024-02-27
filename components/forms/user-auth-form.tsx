@@ -15,7 +15,6 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import GoogleSignInButton from "../github-auth-button";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Enter a valid email address" }),
@@ -28,20 +27,29 @@ export default function UserAuthForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl");
   const [loading, setLoading] = useState(false);
+  const [error, _error] = useState("");
+
   const defaultValues = {
-    email: "demo@gmail.com",
+    email: "master_eobra@test.com",
+    password: "12345",
   };
+
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema),
     defaultValues,
   });
 
   const onSubmit = async (data: UserFormValue) => {
-    signIn("credentials", {
-      email: data.email,
-      password: data.password,
-      callbackUrl: callbackUrl ?? "/dashboard",
-    });
+    try {
+      await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        callbackUrl: callbackUrl ?? "/dashboard",
+      });
+    } catch (error) {
+      console.log(error);
+      _error(error.description ?? "");
+    }
   };
 
   return (
@@ -56,13 +64,18 @@ export default function UserAuthForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{error || "Email"}</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
                     placeholder="Enter your email..."
                     disabled={loading}
+                    className={error ? "border-red-600 border-2" : ""}
                     {...field}
+                    onChange={(e) => {
+                      field.onChange(e.target.value);
+                      _error("");
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -80,8 +93,13 @@ export default function UserAuthForm() {
                   <Input
                     type="password"
                     placeholder="Enter your password..."
+                    className={error ? "border-red-600 border-2" : ""}
                     disabled={loading}
                     {...field}
+                    onChange={(e) => {
+                      field.onChange(e.target.value);
+                      _error("");
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -94,17 +112,6 @@ export default function UserAuthForm() {
           </Button>
         </form>
       </Form>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Or continue with
-          </span>
-        </div>
-      </div>
-      <GoogleSignInButton />
     </>
   );
 }
