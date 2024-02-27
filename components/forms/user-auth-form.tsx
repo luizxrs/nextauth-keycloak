@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import Router from "next/router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -26,7 +27,7 @@ type UserFormValue = z.infer<typeof formSchema>;
 export default function UserAuthForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState("");
   const [error, _error] = useState("");
 
   const defaultValues = {
@@ -40,20 +41,26 @@ export default function UserAuthForm() {
   });
 
   const onSubmit = async (data: UserFormValue) => {
-    try {
-      await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        callbackUrl: callbackUrl ?? "/dashboard",
-      });
-    } catch (error) {
-      console.log(error);
-      _error(error.description ?? "");
+    const res = await signIn("credentials", {
+      email: data.email,
+      password: data.password,
+      redirect: false,
+    });
+
+    if (res?.ok) {
+      Router.push("/dashboard");
+    } else {
+      _error(JSON.parse(res?.error || "").error_description);
     }
   };
 
   return (
     <>
+      {error && (
+        <span className="text-red-500/90 text-xs mx-auto mt-4 font-bold">
+          {error}
+        </span>
+      )}
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -64,7 +71,7 @@ export default function UserAuthForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{error || "Email"}</FormLabel>
+                <FormLabel>Email</FormLabel>
                 <FormControl>
                   <Input
                     type="email"

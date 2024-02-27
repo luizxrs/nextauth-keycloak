@@ -41,10 +41,21 @@ export const authOptions: NextAuthOptions = {
 
         const user = await res.json();
         // If no error and we have user data, return it
+
         if (res.ok && user) {
+          // Any object returned will be saved in `user` property of the JWT
+          console.log(user);
           return user;
+        } else {
+          // Return an object that will pass error information through to the client-side.
+          throw new Error(
+            JSON.stringify({
+              errors: user.error,
+              error_description: user.error_description,
+              status: false,
+            }),
+          );
         }
-        return null;
       },
     }),
   ],
@@ -61,6 +72,8 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     session({ session, token }) {
+      console.log(session);
+      console.log(token);
       if (session) {
         session = Object.assign({}, session, {
           access_token: token.access_token,

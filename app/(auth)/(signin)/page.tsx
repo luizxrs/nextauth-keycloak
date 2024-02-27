@@ -5,16 +5,17 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import { authOptions } from "@/lib/auth-options";
 
 export const metadata: Metadata = {
   title: "Authentication",
   description: "Authentication forms built using the components.",
 };
 
-export default function AuthenticationPage(props: any) {
-  const session = getServerSession();
+export default async function AuthenticationPage() {
+  const session = await getServerSession(authOptions);
 
-  if (session === true) {
+  if (session) {
     redirect("/dashboard");
   }
 
