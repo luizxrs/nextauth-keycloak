@@ -11,8 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
-import Router from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -29,6 +28,7 @@ export default function UserAuthForm() {
   const callbackUrl = searchParams.get("callbackUrl");
   const [loading, setLoading] = useState("");
   const [error, _error] = useState("");
+  const router = useRouter();
 
   const defaultValues = {
     email: "master_eobra@test.com",
@@ -48,7 +48,7 @@ export default function UserAuthForm() {
     });
 
     if (res?.ok) {
-      Router.push("/dashboard");
+      router.push("/dashboard");
     } else {
       _error(JSON.parse(res?.error || "").error_description);
     }

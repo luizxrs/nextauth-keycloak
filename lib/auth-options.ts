@@ -1,3 +1,4 @@
+import { profile } from "console";
 import { NextAuthOptions } from "next-auth";
 import CredentialProvider from "next-auth/providers/credentials";
 
@@ -44,7 +45,6 @@ export const authOptions: NextAuthOptions = {
 
         if (res.ok && user) {
           // Any object returned will be saved in `user` property of the JWT
-          console.log(user);
           return user;
         } else {
           // Return an object that will pass error information through to the client-side.
@@ -63,27 +63,21 @@ export const authOptions: NextAuthOptions = {
     signIn: "/",
   },
   callbacks: {
-    jwt({ token, account }) {
-      if (account) {
-        token = Object.assign({}, token, {
-          access_token: account.access_token,
-        });
+    jwt: ({ token, user, account }) => {
+      console.log(user);
+      if (user) {
+        token.user = user;
+        token.accessToken = user.access_token;
+        token.id = user.id;
       }
+
       return token;
     },
-    session({ session, token }) {
-      console.log(session);
-      console.log(token);
-      if (session) {
-        session = Object.assign({}, session, {
-          access_token: token.access_token,
-          user: {
-            ...session.user,
-            // inserts the user id into the session
-            id: token.sub,
-          },
-        });
-      }
+    session: ({ session, token }) => {
+      session.accessToken = token.accessToken;
+      session.user.id = token.id;
+      session.user = token.user;
+
       return session;
     },
   },

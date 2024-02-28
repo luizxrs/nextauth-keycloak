@@ -12,13 +12,14 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { authOptions } from "@/lib/auth-options";
+import console from "console";
 import { getServerSession } from "next-auth";
 
 export default async function page() {
   const session = await getServerSession(authOptions);
 
-  console.log(session);
-
+ console.log(session);
+ 
   return (
     <ScrollArea className="h-full">
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
